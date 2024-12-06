@@ -44,7 +44,7 @@ class ExtractTransformLoad:
         albums = pd.DataFrame(
             df['album_name']
             .drop_duplicates()
-        ).rename({'album_name': 'album'}, axis=1)
+        ).rename({'album_name': 'album'}, axis=1).reset_index(drop=True)
 
         artists = pd.DataFrame(
             df
@@ -53,7 +53,7 @@ class ExtractTransformLoad:
             .split(';')
             .explode()
             .drop_duplicates()
-        ).rename({'artists': 'artist'}, axis=1)
+        ).rename({'artists': 'artist'}, axis=1).reset_index(drop=True)
 
         albums.insert(loc=0, column='album_id', value=pd.Series(range(1, len(albums) + 1), dtype='Int64'))
 
