@@ -1,0 +1,5 @@
+/venv/
+/.idea
+*.pyc
+*.ipynb
+db/music_data
