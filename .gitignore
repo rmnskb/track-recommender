@@ -3,3 +3,4 @@
 *.pyc
 *.ipynb
 db/music_data
+.env
