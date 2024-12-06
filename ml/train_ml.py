@@ -76,4 +76,4 @@ if __name__ == '__main__':
     data = recommender.data
     kdt = recommender.model
 
-    print(kdt.query(data.iloc[[1, 100]]))
+    recommender.save()

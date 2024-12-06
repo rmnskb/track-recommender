@@ -1,6 +1,14 @@
+# Python and IDE files
 /venv/
 /.idea
 *.pyc
+*.pkl
+
+# IPython notebooks
 *.ipynb
+
+# DB
 db/music_data
+
+# Environmental variables
 .env
