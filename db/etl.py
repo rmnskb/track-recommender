@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, exc
 
 load_dotenv()
 
@@ -103,8 +103,8 @@ class ExtractTransformLoad:
                         , con=conn
                         , index=False
                     )
-        except Exception as e:
-            raise e
+        except exc.OperationalError as e:
+            print(f'Trouble connecting to the database, {e}')
 
 
 if __name__ == '__main__':

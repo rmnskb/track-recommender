@@ -65,8 +65,17 @@ class Recommender:
         with open('kdt.pkl', 'wb') as f:
             pickle.dump(self.model, f)
 
-        with open('data.pkl', 'wb') as f:
-            pickle.dump(self.data, f)
+        try:
+            with self.__class__._sql_engine.connect() as conn:
+                self.data.to_sql(
+                    name='pr_comps'
+                    , if_exists='replace'
+                    , con=conn
+                    , index=True
+                    , index_label='track_id'
+                )
+        except exc.OperationalError as e:
+            print(f'Trouble connecting to the database, {e}')
 
 
 if __name__ == '__main__':
