@@ -1,23 +1,18 @@
 import os
 import pickle
-import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, exc
+from sqlalchemy import exc
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KDTree
+from db.db_handler import DB
 
 
 load_dotenv()
 
 
-class Recommender:
-    _db_user = os.environ.get('POSTGRES_USER')
-    _db_passwd = os.environ.get('POSTGRES_PASSWORD')
-    _db = os.environ.get('POSTGRES_DB')
-    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@localhost:5432/{_db}')
-
+class Recommender(DB):
     def __init__(self, reuse_model: bool = True, filename: str = 'kdt.pkl'):
         base_path = os.path.dirname(__file__)
         model_path = os.path.join(base_path, filename)
@@ -31,21 +26,17 @@ class Recommender:
             self.model = None
 
         self.data = pd.DataFrame()
-        try:
-            with self.__class__._sql_engine.connect() as conn:
-                df = pd.read_sql(
-                    "select * from tracks"
-                    , con=conn
-                )
 
-                self._df = (
-                    df
-                    .set_index('track_id')
-                    .select_dtypes(include=['float64', 'int64'])
-                    .drop(columns=['key', 'time_signature'])
-                )
-        except exc.OperationalError as e:
-            print(f'Trouble connecting to the database, {e}')
+        df = self.__class__.query_table(
+            table_name='tracks'
+        )
+
+        self._df = (
+            df
+            .set_index('track_id')
+            .select_dtypes(include=['float64', 'int64'])
+            .drop(columns=['key', 'time_signature'])
+        )
 
     @staticmethod
     def _preprocess_data(df: pd.DataFrame, n_components: int = 6) -> pd.DataFrame:
@@ -98,29 +89,18 @@ class Recommender:
         if not self.model:
             raise ValueError(f'Recommender model does not exist, please consider training it first using .train()')
 
-        if len(ids) > 1:
-            query = f"""
-                select *
-                from pr_comps 
-                where track_id in {tuple(ids)}
-            """
-        elif len(ids) == 1:
-            query = f"""
-                select *
-                from pr_comps 
-                where track_id = '{ids[0]}'
-            """
-        else:
+        if not isinstance(ids, list):
             raise ValueError(f'ids should be a list of string, you provided {type(ids)}')
 
         if self.data.empty:
-            try:
-                with self.__class__._sql_engine.connect() as conn:
-                    data = pd.read_sql(query, con=conn).drop(columns=['track_id'])
-            except exc.OperationalError as e:
-                print(f'Trouble connecting to the database, {e}')
+            data = self.__class__.query_table(
+                table_name='pr_comps'
+                , filters={
+                    'track_id': ids
+                }
+            ).drop(columns=['track_id'])
         else:  # self.data is already populated
-            data = self.data[self.data['track_id'].isin(ids)]
+            data = self.data[self.data.index.isin(ids)]
 
         kdt = self.model
         recs_idx = kdt.query(data, k=n_recs + 1, return_distance=False)
@@ -129,6 +109,7 @@ class Recommender:
 
 
 if __name__ == '__main__':
-    recommender = Recommender()
-    recommender.train(n_dimensions=6, leaf_size=7)
-    recommender.save()
+    recommender = Recommender(reuse_model=True)
+    # recommender.train(n_dimensions=6, leaf_size=7)
+    # recommender.save()
+    print(sum(recommender.recommend(ids=['5SuOikwiRyPMVoIQDJUgSV', '1iJBSr7s7jYXzM8EGcbK5b'], n_recs=7).tolist(), []))
