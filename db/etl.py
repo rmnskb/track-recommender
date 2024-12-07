@@ -29,6 +29,8 @@ class ExtractTransformLoad(DB):
             .drop(columns=['Unnamed: 0'])
             .dropna()
             .drop_duplicates(subset='track_id', keep='first', inplace=False)
+            .reset_index(drop=True)  # reset the old index
+            .reset_index(names='idx')  # save new index as a separate column
         )
 
         return df

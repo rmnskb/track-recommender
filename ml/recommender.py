@@ -35,7 +35,7 @@ class Recommender(DB):
             df
             .set_index('track_id')
             .select_dtypes(include=['float64', 'int64'])
-            .drop(columns=['key', 'time_signature'])
+            .drop(columns=['key', 'time_signature', 'album_id', 'idx'])
         )
 
     @staticmethod
