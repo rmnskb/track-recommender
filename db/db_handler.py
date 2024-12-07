@@ -2,6 +2,7 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, exc
+from sqlalchemy.sql import text
 
 load_dotenv()
 
@@ -11,6 +12,25 @@ class DB:
     _db_passwd = os.environ.get('POSTGRES_PASSWORD')
     _db = os.environ.get('POSTGRES_DB')
     _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@localhost:5432/{_db}')
+
+    @classmethod
+    def _table_exists(cls, table_name: str) -> bool:
+        query = f"""
+            select exists(
+                select 1
+                from information_schema.tables
+                where table_schema = 'public'
+                    and table_name = '{table_name}'
+            )
+        """
+
+        try:
+            with cls._sql_engine.connect() as conn:
+                result = bool(conn.execute(text(query)).fetchone()[0])
+        except exc.OperationalError as e:
+            print(f'Trouble connecting to the database, {e}')
+
+        return result
 
     @staticmethod
     def _build_filters(
@@ -58,7 +78,8 @@ class DB:
         :param limit: limit of rows to return
         :return: pandas' Dataframe with the result, empty df if no result
         """
-        # TODO: check if table exists in the db
+        if not cls._table_exists(table_name=table_name):
+            raise ValueError(f'The table {table_name} does not exist')
 
         if not columns:
             columns = '*'
@@ -95,15 +116,77 @@ class DB:
 
         return data
 
+    @classmethod
+    def update_table(
+            cls
+            , table_name: str
+            , values: list[dict[str,]]
+            , filters: dict[str, str | list[str] | float | list[float] | None]
+    ) -> None:
+        if not cls._table_exists(table_name=table_name):
+            raise ValueError(f'The table {table_name} does not exist')
+
+        where, params = cls._build_filters(filters=filters)
+
+        if not values:
+            raise ValueError(f'You should specify the values you want to update')
+        elif not isinstance(values[0], dict):
+            raise TypeError(f'Values should be passed as a list with dictionaries')
+        else:
+            updates = ', '.join(f'{str(values[0].keys())} = %({str(values[0].keys())})s')
+
+        query = f"""
+            update {table_name}
+            set {updates}
+            {where}
+        """
+
+        try:
+            with cls._sql_engine.connect() as conn:
+                for line in values:
+                    conn.execute(text(query), **line, **params)
+
+                conn.commit()
+        except exc.OperationalError as e:
+            print(f'Trouble connecting to the database, {e}')
+
+    @classmethod
+    def insert_data(
+            cls
+            , table_name: str
+            , columns: list[str]
+            , values: list[dict[str, ]]
+    ) -> None:
+        if not cls._table_exists(table_name=table_name):
+            raise ValueError(f'The table {table_name} does not exist')
+
+        if not columns:
+            raise ValueError(f'You should specify the columns where you want to insert your values')
+        elif len(columns) == 1:
+            columns = columns[0]
+        elif len(columns) > 1:
+            columns = ', '.join(columns)
+
+        if not values:
+            raise ValueError(f'You should specify the values you want to insert')
+        elif not isinstance(values[0], dict):
+            raise TypeError(f'Values should be passed as a list with dictionaries')
+        else:
+            inserts = ', '.join('%(' + str(values[0].keys()) + ')s')
+
+        query = f"""
+            insert into {table_name}({columns}) values({inserts})
+        """
+
+        try:
+            with cls._sql_engine.connect() as conn:
+                for line in values:
+                    conn.execute(text(query), **line)
+
+                conn.commit()
+        except exc.OperationalError as e:
+            print(f'Trouble connecting to the database, {e}')
+
 
 if __name__ == '__main__':
     db_handler = DB()
-    ids = ['5SuOikwiRyPMVoIQDJUgSV', '1iJBSr7s7jYXzM8EGcbK5b']
-    data = db_handler.query_table(
-                table_name='tracks'
-                , filters={
-                    'track_id': ids
-                }
-            )
-
-    print(data)
