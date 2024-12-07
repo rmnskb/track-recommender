@@ -107,4 +107,8 @@ class ExtractTransformLoad(DB):
 
 if __name__ == '__main__':
     etl = ExtractTransformLoad()
-    etl.populate_database()
+
+    # run this script as a part of container initialisation
+    if not etl.db_exists():
+        etl.populate_database()
+    # print(etl.db_exists())
