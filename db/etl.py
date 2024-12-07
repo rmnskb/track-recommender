@@ -1,18 +1,14 @@
 import os
-import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, exc
+from sqlalchemy import exc
+from db_handler import DB
 
 load_dotenv()
 
 
-class ExtractTransformLoad:
-    _db_user = os.environ.get('POSTGRES_USER')
-    _db_passwd = os.environ.get('POSTGRES_PASSWORD')
-    _db = os.environ.get('POSTGRES_DB')
+class ExtractTransformLoad(DB):
     _source_url = 'hf://datasets/maharshipandya/spotify-tracks-dataset/dataset.csv'
-    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@localhost:5432/{_db}')
 
     def __init__(self):
         self._df = pd.DataFrame()
