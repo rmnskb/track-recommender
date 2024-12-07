@@ -18,8 +18,18 @@ class Recommender:
     _db = os.environ.get('POSTGRES_DB')
     _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@localhost:5432/{_db}')
 
-    def __init__(self):
-        self.model = None
+    def __init__(self, reuse_model: bool = True, filename: str = 'kdt.pkl'):
+        base_path = os.path.dirname(__file__)
+        model_path = os.path.join(base_path, filename)
+
+        if reuse_model and os.path.isfile(model_path):
+            with open(model_path, 'rb') as f:
+                self.model = pickle.load(f)
+        elif reuse_model and not os.path.isfile(model_path):
+            raise FileNotFoundError(f'There is no pickle file in the provided path: {model_path}')
+        else:
+            self.model = None
+
         self.data = pd.DataFrame()
         try:
             with self.__class__._sql_engine.connect() as conn:
@@ -77,12 +87,48 @@ class Recommender:
         except exc.OperationalError as e:
             print(f'Trouble connecting to the database, {e}')
 
+    def recommend(self, ids: list[str], n_recs: int):
+        """
+        Recommend tracks using KDTree model, bases the recommendations on provided track ids. Please consider
+        training the model first before you run this method, unless you have a pickled model in the directory.
+        :param ids: list of track ids, please note that you should parse list even if it is one value
+        :param n_recs: number of recommendations to return
+        :return: ids of the closest neighbours
+        """
+        if not self.model:
+            raise ValueError(f'Recommender model does not exist, please consider training it first using .train()')
+
+        if len(ids) > 1:
+            query = f"""
+                select *
+                from pr_comps 
+                where track_id in {tuple(ids)}
+            """
+        elif len(ids) == 1:
+            query = f"""
+                select *
+                from pr_comps 
+                where track_id = '{ids[0]}'
+            """
+        else:
+            raise ValueError(f'ids should be a list of string, you provided {type(ids)}')
+
+        if self.data.empty:
+            try:
+                with self.__class__._sql_engine.connect() as conn:
+                    data = pd.read_sql(query, con=conn).drop(columns=['track_id'])
+            except exc.OperationalError as e:
+                print(f'Trouble connecting to the database, {e}')
+        else:  # self.data is already populated
+            data = self.data[self.data['track_id'].isin(ids)]
+
+        kdt = self.model
+        recs_idx = kdt.query(data, k=n_recs + 1, return_distance=False)
+
+        return recs_idx[:, 1:]  # don't return the point itself
+
 
 if __name__ == '__main__':
     recommender = Recommender()
     recommender.train(n_dimensions=6, leaf_size=7)
-
-    data = recommender.data
-    kdt = recommender.model
-
     recommender.save()
