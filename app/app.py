@@ -33,18 +33,5 @@ def recommend():
     return jsonify(results), 200
 
 
-@app.route('/query_db', methods=['GET'])
-def query_db():
-    db = DB()
-
-    results = db.query_table(
-        'pr_comps'
-        , limit=20
-        , columns=['PC1']
-    ).set_index('track_id')['PC1'].to_dict()
-
-    return jsonify(results), 200
-
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
