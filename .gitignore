@@ -8,7 +8,7 @@
 *.ipynb
 
 # DB
-db/music_data
+app/db/music_data
 
 # Environmental variables
 .env

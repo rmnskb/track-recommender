@@ -1,18 +1,14 @@
 import os
-import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, exc
+from sqlalchemy import exc
+from db_handler import DB
 
 load_dotenv()
 
 
-class ExtractTransformLoad:
-    _db_user = os.environ.get('POSTGRES_USER')
-    _db_passwd = os.environ.get('POSTGRES_PASSWORD')
-    _db = os.environ.get('POSTGRES_DB')
+class ExtractTransformLoad(DB):
     _source_url = 'hf://datasets/maharshipandya/spotify-tracks-dataset/dataset.csv'
-    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@localhost:5432/{_db}')
 
     def __init__(self):
         self._df = pd.DataFrame()
@@ -33,6 +29,8 @@ class ExtractTransformLoad:
             .drop(columns=['Unnamed: 0'])
             .dropna()
             .drop_duplicates(subset='track_id', keep='first', inplace=False)
+            .reset_index(drop=True)  # reset the old index
+            .reset_index(names='idx')  # save new index as a separate column
         )
 
         return df
@@ -109,4 +107,8 @@ class ExtractTransformLoad:
 
 if __name__ == '__main__':
     etl = ExtractTransformLoad()
-    etl.populate_database()
+
+    # run this script as a part of container initialisation
+    if not etl.db_exists():
+        etl.populate_database()
+    # print(etl.db_exists())
