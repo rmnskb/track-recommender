@@ -11,10 +11,30 @@ class DB:
     _db_user = os.environ.get('POSTGRES_USER')
     _db_passwd = os.environ.get('POSTGRES_PASSWORD')
     _db = os.environ.get('POSTGRES_DB')
-    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@localhost:5432/{_db}')
+    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@pg:5432/{_db}')
 
     @classmethod
-    def _table_exists(cls, table_name: str) -> bool:
+    def db_exists(cls, table_schema: str = 'public') -> bool:
+        query = f"""
+            select exists(
+                select 1
+                from information_schema.tables
+                where table_schema = '{table_schema}'
+            )
+        """
+
+        try:
+            with cls._sql_engine.connect() as conn:
+                result = bool(conn.execute(text(query)).fetchone()[0])
+
+                return result
+        except exc.OperationalError as e:
+            print(f'Trouble connecting to the database, {e}')
+
+        return False
+
+    @classmethod
+    def table_exists(cls, table_name: str) -> bool:
         query = f"""
             select exists(
                 select 1
@@ -27,10 +47,12 @@ class DB:
         try:
             with cls._sql_engine.connect() as conn:
                 result = bool(conn.execute(text(query)).fetchone()[0])
+
+                return result
         except exc.OperationalError as e:
             print(f'Trouble connecting to the database, {e}')
 
-        return result
+        return False
 
     @staticmethod
     def _build_filters(
@@ -78,7 +100,7 @@ class DB:
         :param limit: limit of rows to return
         :return: pandas' Dataframe with the result, empty df if no result
         """
-        if not cls._table_exists(table_name=table_name):
+        if not cls.table_exists(table_name=table_name):
             raise ValueError(f'The table {table_name} does not exist')
 
         if not columns:
@@ -123,7 +145,7 @@ class DB:
             , values: list[dict[str,]]
             , filters: dict[str, str | list[str] | float | list[float] | None]
     ) -> None:
-        if not cls._table_exists(table_name=table_name):
+        if not cls.table_exists(table_name=table_name):
             raise ValueError(f'The table {table_name} does not exist')
 
         where, params = cls._build_filters(filters=filters)
@@ -157,7 +179,7 @@ class DB:
             , columns: list[str]
             , values: list[dict[str, ]]
     ) -> None:
-        if not cls._table_exists(table_name=table_name):
+        if not cls.table_exists(table_name=table_name):
             raise ValueError(f'The table {table_name} does not exist')
 
         if not columns:
