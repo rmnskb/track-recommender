@@ -6,7 +6,7 @@ from sqlalchemy import exc
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.neighbors import KDTree
-from db.db_handler import DB
+from app.db.db_handler import DB
 
 
 load_dotenv()
@@ -63,20 +63,22 @@ class Recommender(DB):
         self.model = KDTree(self.data, leaf_size=leaf_size)
 
     def save(self):
-        with open('kdt.pkl', 'wb') as f:
-            pickle.dump(self.model, f)
+        if self.model:
+            with open('kdt.pkl', 'wb') as f:
+                pickle.dump(self.model, f)
 
-        try:
-            with self.__class__._sql_engine.connect() as conn:
-                self.data.to_sql(
-                    name='pr_comps'
-                    , if_exists='replace'
-                    , con=conn
-                    , index=True
-                    , index_label='track_id'
-                )
-        except exc.OperationalError as e:
-            print(f'Trouble connecting to the database, {e}')
+        if not self.data.empty:
+            try:
+                with self.__class__._sql_engine.connect() as conn:
+                    self.data.to_sql(
+                        name='pr_comps'
+                        , if_exists='replace'
+                        , con=conn
+                        , index=True
+                        , index_label='track_id'
+                    )
+            except exc.OperationalError as e:
+                print(f'Trouble connecting to the database, {e}')
 
     def recommend(self, ids: list[str], n_recs: int):
         """
@@ -109,7 +111,7 @@ class Recommender(DB):
 
 
 if __name__ == '__main__':
-    recommender = Recommender(reuse_model=True)
-    # recommender.train(n_dimensions=6, leaf_size=7)
-    # recommender.save()
-    print(sum(recommender.recommend(ids=['5SuOikwiRyPMVoIQDJUgSV', '1iJBSr7s7jYXzM8EGcbK5b'], n_recs=7).tolist(), []))
+    recommender = Recommender(reuse_model=False)
+    recommender.train()
+    recommender.save()
+
