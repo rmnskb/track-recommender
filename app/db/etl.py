@@ -8,6 +8,20 @@ load_dotenv()
 
 
 class ExtractTransformLoad(DB):
+    """
+    A class that handles the ETL process for the given dataset, extends the parent DB class, inherits all public methods
+    ...
+
+    Attributes
+    ----------
+    There are none
+
+    Methods
+    -------
+    populate_database() -> None:
+        Extracts the dataset from the given source, cleans and normalises it across 4 tables,
+        then uploads it into the DB.
+    """
     _source_url = 'hf://datasets/maharshipandya/spotify-tracks-dataset/dataset.csv'
 
     def __init__(self):
@@ -18,10 +32,17 @@ class ExtractTransformLoad(DB):
         self._tracks_artists = pd.DataFrame()
 
     def _fetch_data(self):
+        """Fetch the data from the specified source"""
         self._df = pd.read_csv(self.__class__._source_url)
 
     @staticmethod
     def _preprocess_data(data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Preprocesses the given data, please be advised that this preprocessing function is not generic and is tied to
+            this particular dataset
+        :param data: pandas' DataFrame to preprocess
+        :return: a cleaned DataFrame
+        """
         df = data.copy()
 
         df = (
@@ -36,6 +57,10 @@ class ExtractTransformLoad(DB):
         return df
 
     def _normalise_tables(self) -> None:
+        """
+        Normalises the data by splitting it into multiple tables that contain different levels of granularity.
+        :return: void function, saves the tables as instance's objects that can be accessed via respective calls
+        """
         self._fetch_data()
         df = self._preprocess_data(self._df)
 
@@ -82,6 +107,11 @@ class ExtractTransformLoad(DB):
         self._tracks_artists = tracks_artists
 
     def populate_database(self) -> None:
+        """
+        Insert the normalised tables into the database:
+            public.tracks, public.albums, public.artists, public.tracks_artists
+        :return: void function
+        """
         self._normalise_tables()
         engine = self.__class__._sql_engine
 
@@ -111,4 +141,3 @@ if __name__ == '__main__':
     # run this script as a part of container initialisation
     if not etl.db_exists():
         etl.populate_database()
-    # print(etl.db_exists())

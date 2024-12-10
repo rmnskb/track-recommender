@@ -8,6 +8,32 @@ load_dotenv()
 
 
 class DB:
+    """
+    A class that handles the DB connection and the interactions with it.
+    ...
+
+    Attributes
+    ----------
+    There are none
+
+    Methods
+    -------
+    db_exists() -> bool:
+        Check whether the given schema exists
+
+    table_exists() -> bool:
+        Check whether the vien table exists
+
+    query_table() -> pd.DataFrame:
+        Query the table and get the results as pandas' DataFrame
+
+    insert_data() -> None:
+        Insert the data to the DB
+
+    update_table() -> None:
+        Update the table with new values
+    """
+
     _db_user = os.environ.get('POSTGRES_USER')
     _db_passwd = os.environ.get('POSTGRES_PASSWORD')
     _db = os.environ.get('POSTGRES_DB')
@@ -15,6 +41,7 @@ class DB:
 
     @classmethod
     def db_exists(cls, table_schema: str = 'public') -> bool:
+        """Check whether given table schema exists, return boolean"""
         query = f"""
             select exists(
                 select 1
@@ -35,6 +62,7 @@ class DB:
 
     @classmethod
     def table_exists(cls, table_name: str) -> bool:
+        """Check whether given table exists in the public schema, return boolean"""
         query = f"""
             select exists(
                 select 1
@@ -58,7 +86,11 @@ class DB:
     def _build_filters(
             filters: dict[str, str | list[str] | float | list[float]]
     ) -> tuple[str, dict[str, str | list[str] | float | list[float]]]:
-        """Build the where clause for the sql query that handles the logic"""
+        """
+        Build the where clause for the sql query that handles the logic
+        :param filters: a key-value pairs of column and the values to filter for
+        :return: the string for the where clause in query and the parameters for the sql call
+        """
         conditions = []
         params = {}
 
@@ -145,6 +177,15 @@ class DB:
             , values: list[dict[str,]]
             , filters: dict[str, str | list[str] | float | list[float] | None]
     ) -> None:
+        """
+        A wrapper function for the sql call that allows you to update the table with new values
+        :param table_name: table name in the db, mandatory
+        :param values: new values to update the table with, mandatory
+        :param filters: filters to be used with the query,
+            pass the dictionary with columns as keys and values as values, use None for nulls, mandatory, will update
+            the whole table otherwise
+        :return: void function, updates the table
+        """
         if not cls.table_exists(table_name=table_name):
             raise ValueError(f'The table {table_name} does not exist')
 
@@ -179,6 +220,14 @@ class DB:
             , columns: list[str]
             , values: list[dict[str, ]]
     ) -> None:
+        """
+         wrapper function for the sql call that allows you to insert new data
+        :param table_name: table name in the db, mandatory
+        :param columns: a list of columns to insert, please parse a list even if you want one column, mandatory
+        :param values: a list of dictionaries, where each dictionary represents a new row,
+            and each key-value pair a column and a respective value to insert, mandatory
+        :return: void function, inserts new values
+        """
         if not cls.table_exists(table_name=table_name):
             raise ValueError(f'The table {table_name} does not exist')
 
