@@ -49,7 +49,7 @@ class Recommender(DB):
         if reuse_model and self.table_exists('pr_comps'):  # reuse the existing data
             self.data = self.__class__.query_table(
                 table_name='pr_comps'
-            )
+            ).set_index('track_id')
         else:
             self.data = pd.DataFrame()
 
