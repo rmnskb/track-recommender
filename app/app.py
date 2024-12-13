@@ -1,14 +1,16 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from recommender import Recommender
 from db.db_handler import DB
 
 app = Flask(__name__)
+CORS(app)
+db = DB()
+recommender = Recommender(reuse_model=True)
 
 
 @app.route('/api/v1/recommend', methods=['POST'])
 def recommend():
-    db = DB()
-    recommender = Recommender(reuse_model=True)
     data = request.json
 
     if not data or 'ids' not in data.keys():
@@ -31,6 +33,24 @@ def recommend():
     ).set_index('track_id')['track_name'].to_dict()
 
     return jsonify(results), 200
+
+
+@app.route('/api/v1/autocomplete', methods=['GET'])
+def autocomplete():
+    query = request.args.get('q', '')
+    suggestions = db.query_table(
+        table_name='tracks'
+        , columns=['track_id', 'track_name']
+        , filters={'track_name_like': query}
+        , limit=10
+    ).set_index('track_id')['track_name'].to_dict()
+
+    return suggestions, 200
+
+
+@app.route('/api/v1/test', methods=['GET'])
+def test_api():
+    return {'api_status': 'works fine'}, 200
 
 
 if __name__ == '__main__':

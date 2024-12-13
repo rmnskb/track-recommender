@@ -97,8 +97,13 @@ class DB:
         if filters:
             for col, val in filters.items():
                 if isinstance(val, (int, float, str)):
-                    conditions.append(f"col = %({col})s")
-                    params[col] = val
+                    if isinstance(val, str) and '_like' in col:
+                        col = col.replace('_like', '')
+                        conditions.append(f"lower({col}) like %({col})s")
+                        params[col] = f"%{val.lower()}%"
+                    else:
+                        conditions.append(f"{col} = %({col})s")
+                        params[col] = val
                 elif isinstance(val, list):
                     if len(val) == 1:
                         conditions.append(f"{col} = %({col})s")

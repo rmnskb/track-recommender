@@ -18,7 +18,7 @@ services:
   api:
     container_name: flask-api
     build:
-      context: .
+      context: ./app
       dockerfile: Dockerfile
     stop_signal: SIGINT
     environment:
@@ -37,6 +37,15 @@ services:
     working_dir: /app
     command: >
       bash -c "python db/etl.py && python recommender.py && python app.py"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - 3000:80
+    depends_on:
+      - api
 
 volumes:
   music_data:

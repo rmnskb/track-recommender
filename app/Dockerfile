@@ -27,9 +27,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY app/ /app
-RUN chmod +x /app/ml/entrypoint.sh
-RUN /app/ml/entrypoint.sh
+COPY . /app
+#RUN chmod +x /app/ml/entrypoint.sh
+#RUN /app/ml/entrypoint.sh
 
 #RUN chmod +x /app/db/etl.py
 #RUN python /app/db/etl.py
