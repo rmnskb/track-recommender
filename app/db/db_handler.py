@@ -37,7 +37,7 @@ class DB:
     _db_user = os.environ.get('POSTGRES_USER')
     _db_passwd = os.environ.get('POSTGRES_PASSWORD')
     _db = os.environ.get('POSTGRES_DB')
-    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@db:5432/{_db}')
+    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@pg:5432/{_db}')
 
     @classmethod
     def db_exists(cls, table_schema: str = 'public') -> bool:
