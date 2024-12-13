@@ -27,10 +27,14 @@ def recommend():
     recs = sum(recommender.recommend(ids=ids, n_recs=n_recs).tolist(), [])  # flatten the results
 
     results = db.query_table(
-        table_name='tracks'
-        , columns=['track_id', 'track_name']
+        table_name='tracks as tr'
+        , columns=['tr.track_id', "concat(tr.track_name, ' by ', a.artist) as track_artist"]
+        , join={
+            'tracks_artists as ta': ['tr.track_id = ta.track_id']
+            , 'artists as a': ['ta.artist_id = a.artist_id']
+        }
         , filters={'idx': recs}
-    ).set_index('track_id')['track_name'].to_dict()
+    ).to_dict(orient='records')
 
     return jsonify(results), 200
 
@@ -39,11 +43,15 @@ def recommend():
 def autocomplete():
     query = request.args.get('q', '')
     suggestions = db.query_table(
-        table_name='tracks'
-        , columns=['track_id', 'track_name']
-        , filters={'track_name_like': query}
+        table_name='tracks as tr'
+        , columns=['tr.track_id', "concat(tr.track_name, ' by ', a.artist) as track_artist"]
+        , join={
+            'tracks_artists as ta': ['tr.track_id = ta.track_id']
+            , 'artists as a': ['ta.artist_id = a.artist_id']
+        }
+        , filters={'tr.track_name_like': query}
         , limit=10
-    ).set_index('track_id')['track_name'].to_dict()
+    ).to_dict(orient='records')
 
     return suggestions, 200
 
