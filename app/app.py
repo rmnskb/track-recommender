@@ -28,7 +28,7 @@ def recommend():
 
     results = db.query_table(
         table_name='tracks as tr'
-        , columns=['tr.track_id', "concat(tr.track_name, ' by ', a.artist) as track_artist"]
+        , columns=['tr.track_id', 'tr.track_name', "array_to_string(array_agg(a.artist), ', '::text) as artists"]
         , join={
             'tracks_artists as ta': ['tr.track_id = ta.track_id']
             , 'artists as a': ['ta.artist_id = a.artist_id']
