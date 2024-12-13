@@ -128,6 +128,7 @@ class DB:
             , columns: list[str] = None
             , join: dict[str, list[str]] = None
             , filters: dict[str, str | list[str] | float | list[float] | None] = None
+            , group_by: list[str | int] = None
             , order_by: str | list[str] = None
             , limit: int = None
     ) -> pd.DataFrame:
@@ -139,6 +140,7 @@ class DB:
             {'table as alias': [list of columns to join on as strings]} format
         :param filters: filters to be used with the query,
             pass the dictionary with columns as keys and values as values, use None for nulls
+        :param group_by: a list of columns to group by, can be either explicit column names or numbers
         :param order_by: columns to sort by
         :param limit: limit of rows to return
         :return: pandas' Dataframe with the result, empty df if no result
@@ -161,6 +163,11 @@ class DB:
 
         where, params = cls._build_filters(filters=filters)
 
+        if group_by:
+            group = 'group by ' + ', '.join([str(column) for column in group_by])
+        else:
+            group = ''
+
         if order_by:
             sort = 'order by ' + ', '.join(order_by) if isinstance(order_by, list) else order_by
         else:
@@ -171,6 +178,7 @@ class DB:
             from {table_name}
             {merge}
             {where}
+            {group}
             {sort}
             {'limit ' + str(limit) if limit else ''}
         """
