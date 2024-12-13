@@ -36,3 +36,20 @@
     transform: rotate(360deg);
   }
 }
+
+a {
+  text-decoration: none;
+  color: rebeccapurple;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: blueviolet;
+}
+
+a:active {
+  color: red;
+}
