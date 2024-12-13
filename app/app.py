@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from recommender import Recommender
 from db.db_handler import DB
 
 app = Flask(__name__)
+CORS(app)
 db = DB()
 recommender = Recommender(reuse_model=True)
 
@@ -44,6 +46,11 @@ def autocomplete():
     ).set_index('track_id')['track_name'].to_dict()
 
     return suggestions, 200
+
+
+@app.route('/api/v1/test', methods=['GET'])
+def test_api():
+    return {'api_status': 'works fine'}, 200
 
 
 if __name__ == '__main__':

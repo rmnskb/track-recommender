@@ -37,7 +37,7 @@ class DB:
     _db_user = os.environ.get('POSTGRES_USER')
     _db_passwd = os.environ.get('POSTGRES_PASSWORD')
     _db = os.environ.get('POSTGRES_DB')
-    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@pg:5432/{_db}')
+    _sql_engine = create_engine(f'postgresql://{_db_user}:{_db_passwd}@db:5432/{_db}')
 
     @classmethod
     def db_exists(cls, table_schema: str = 'public') -> bool:
@@ -97,8 +97,13 @@ class DB:
         if filters:
             for col, val in filters.items():
                 if isinstance(val, (int, float, str)):
-                    conditions.append(f"col = %({col})s")
-                    params[col] = val
+                    if isinstance(val, str) and '_like' in col:
+                        col = col.replace('_like', '')
+                        conditions.append(f"lower({col}) like %({col})s")
+                        params[col] = f"%{val.lower()}%"
+                    else:
+                        conditions.append(f"{col} = %({col})s")
+                        params[col] = val
                 elif isinstance(val, list):
                     if len(val) == 1:
                         conditions.append(f"{col} = %({col})s")
