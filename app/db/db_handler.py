@@ -63,6 +63,9 @@ class DB:
     @classmethod
     def table_exists(cls, table_name: str) -> bool:
         """Check whether given table exists in the public schema, return boolean"""
+        if len(table_name.split(' ')) > 1:  # if table name has aliases
+            table_name = table_name.split(' ')[0]  # extract the table name
+
         query = f"""
             select exists(
                 select 1
@@ -123,16 +126,21 @@ class DB:
             cls
             , table_name: str
             , columns: list[str] = None
+            , join: dict[str, list[str]] = None
             , filters: dict[str, str | list[str] | float | list[float] | None] = None
+            , group_by: list[str | int] = None
             , order_by: str | list[str] = None
             , limit: int = None
     ) -> pd.DataFrame:
         """
         A wrapper for pandas' sql api, allows you to query database via python interface
-        :param table_name: Table Name, required parameter
+        :param table_name: Table Name, required parameter (you can pass the alias along with the name)
         :param columns: a list of columns to query, please parse a list even if you want one column, * if None, optional
+        :param join: a table to join on, left join by default, the dictionary should be in the
+            {'table as alias': [list of columns to join on as strings]} format
         :param filters: filters to be used with the query,
             pass the dictionary with columns as keys and values as values, use None for nulls
+        :param group_by: a list of columns to group by, can be either explicit column names or numbers
         :param order_by: columns to sort by
         :param limit: limit of rows to return
         :return: pandas' Dataframe with the result, empty df if no result
@@ -147,7 +155,18 @@ class DB:
         elif len(columns) > 1:
             columns = ', '.join(columns)
 
+        merge = ''
+        if join:
+            for table, cols in join.items():
+                if cls.table_exists(table_name=table):
+                    merge += f"left join {table} on {' and '.join(cols)} \n"
+
         where, params = cls._build_filters(filters=filters)
+
+        if group_by:
+            group = 'group by ' + ', '.join([str(column) for column in group_by])
+        else:
+            group = ''
 
         if order_by:
             sort = 'order by ' + ', '.join(order_by) if isinstance(order_by, list) else order_by
@@ -157,7 +176,9 @@ class DB:
         query = f"""
             select {columns}
             from {table_name}
+            {merge}
             {where}
+            {group}
             {sort}
             {'limit ' + str(limit) if limit else ''}
         """
@@ -266,3 +287,5 @@ class DB:
 
 if __name__ == '__main__':
     db_handler = DB()
+
+
