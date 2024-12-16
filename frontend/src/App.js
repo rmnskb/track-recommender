@@ -1,17 +1,35 @@
-import logo from './logo.svg';
 import './App.css';
-import { useState, useEffect } from 'react';
+import {useState, useEffect, useRef} from 'react';
 import axios from 'axios'
 
 const apiUrl = '//localhost:5000'
 
 
-const SearchBar = ({ chosenTracks, setChosenTracks }) => {
+const SearchBar = ({chosenTracks, setChosenTracks}) => {
     const [query, setQuery] = useState('')
     const [autocomplete, setAutocomplete] = useState([{}])
+    const [selectedProductIndex, setSelectedProductIndex] = useState(-1)
+    const inputRef = useRef(null)
 
-    const inputHandler = (e) => {
-        setQuery(e.target.value);
+    const handleQueryChange = (event) => {
+        setQuery(event.target.value);
+    };
+
+    const handleKeyDown = (event) => {
+        if (event.key === 'ArrowUp') {
+            setSelectedProductIndex(prevIndex =>
+                prevIndex === -1 ? autocomplete.length - 1 : prevIndex - 1
+            )
+        } else if (event.key === 'ArrowDown') {
+            setSelectedProductIndex(prevIndex =>
+                prevIndex === autocomplete.length - 1 ? -1 : prevIndex + 1
+            )
+        } else if (event.key === 'Enter') {
+            if (selectedProductIndex !== -1) {
+                setChosenTracks([...chosenTracks, autocomplete[selectedProductIndex]])
+                alert(`You selected ${setChosenTracks(autocomplete[selectedProductIndex])['track_artist']}`)
+            }
+        }
     };
 
     const fetchAutocomplete = async (query) => {
@@ -28,7 +46,7 @@ const SearchBar = ({ chosenTracks, setChosenTracks }) => {
         if (query.length > 2) {
             const timeoutId = setTimeout(() => {
                 fetchAutocomplete(query);
-            }, 300); // Adjust debounce delay as needed (300ms is typical)
+            }, 300); // 300ms debounce delay
 
             return () => clearTimeout(timeoutId); // Cleanup timeout on query change
         } else {
@@ -37,30 +55,42 @@ const SearchBar = ({ chosenTracks, setChosenTracks }) => {
     }, [query]);
 
     const listAutocomplete = autocomplete.length > 0 ? (
-        autocomplete.map(track =>
-            <li
-                key={track['track_id']}
-                onClick={() => {
-                    setChosenTracks([...chosenTracks, track['track_id']]);
-                }}
-                className="active"
-            >
-                {track['track_artist']}
-            </li>
+        autocomplete.map(track => (
+                <div className="bg-white max-h-96 overflow-y-scroll resultProductContainer">
+                    <div
+                        key={track['track_id']}
+                        className="
+                            py-2 px-4 flex items-center justify-between gap-8
+                            hover:bg-gray-200 cursor-pointer
+                        "
+                        onClick={() => {
+                            setChosenTracks([...chosenTracks, track['track_id']]);
+                        }}
+                    >
+                        <p>{track['track_artist']}</p>
+                    </div>
+                </div>
+            )
         )
     ) : (
-        <li>No suggestions available</li>
+        <></>
     );
 
     return (
-        <div>
+        <div className="max-w-lg mx-auto mt-20 flex flex-col">
             <input
-            type="text"
-            placeholder="Enter your search here"
-            onChange={inputHandler}
-            value={query}
-        />
-        <ul>{autocomplete && listAutocomplete}</ul>
+                type="text"
+                className="
+                    px-4 py-5 border-gray-500
+                    focus:outline-none focus:ring-2 focus:border-gray-950
+                "
+                onChange={handleQueryChange}
+                onKeyDown={handleKeyDown}
+                value={query}
+                ref={inputRef}
+                placeholder="Search tracks..."
+            />
+            {listAutocomplete}
         </div>
     );
 }
@@ -103,15 +133,13 @@ const Recommendations = (tracks) => {
             </li>
         )
     ) : (
-        <li>No recommendations</li>
+        <></>
     );
 
     return (
-      <div>
-          <li>
-              {recs && listRecommendations}
-          </li>
-      </div>
+        <div>
+            {listRecommendations}
+        </div>
     );
 }
 
@@ -129,15 +157,17 @@ export default function App() {
     }
 
     return (
-        <div>
+        <div className="bg-slate-800 flex flex-row min-h-screen justify-center items-center">
             <h1>Music Recommender</h1>
             <button onClick={testApi}>Test the API</button>
             <div>
                 <a>{test['api_status']}</a>
             </div>
+            <br></br>
             <div>
-                <SearchBar chosenTracks={chosenTracks} setChosenTracks={setChosenTracks} />
+                <SearchBar chosenTracks={chosenTracks} setChosenTracks={setChosenTracks}/>
             </div>
+            <br></br>
             <div>
                 <Recommendations tracks={chosenTracks} />
             </div>
