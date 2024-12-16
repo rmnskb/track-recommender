@@ -8,27 +8,42 @@ const apiUrl = '//localhost:5000'
 const SearchBar = ({chosenTracks, setChosenTracks}) => {
     const [query, setQuery] = useState('')
     const [autocomplete, setAutocomplete] = useState([{}])
-    const [selectedProductIndex, setSelectedProductIndex] = useState(-1)
+    const [selectedIndex, setSelectedIndex] = useState(-1)
     const inputRef = useRef(null)
+
+    const resetSearch = () => {
+        setQuery("");
+        setAutocomplete([]);
+        setSelectedIndex(-1);
+    };
 
     const handleQueryChange = (event) => {
         setQuery(event.target.value);
     };
 
     const handleKeyDown = (event) => {
-        if (event.key === 'ArrowUp') {
-            setSelectedProductIndex(prevIndex =>
-                prevIndex === -1 ? autocomplete.length - 1 : prevIndex - 1
-            )
-        } else if (event.key === 'ArrowDown') {
-            setSelectedProductIndex(prevIndex =>
-                prevIndex === autocomplete.length - 1 ? -1 : prevIndex + 1
-            )
-        } else if (event.key === 'Enter') {
-            if (selectedProductIndex !== -1) {
-                setChosenTracks([...chosenTracks, autocomplete[selectedProductIndex]])
-                alert(`You selected ${setChosenTracks(autocomplete[selectedProductIndex])['track_artist']}`)
-            }
+        switch (event.key) {
+            case 'ArrowUp':
+                event.preventDefault();
+                setSelectedIndex(prevIndex =>
+                    prevIndex === -1 ? autocomplete.length - 1 : prevIndex - 1
+                );
+                break;
+            case 'ArrowDown':
+                event.preventDefault();
+                setSelectedIndex(prevIndex =>
+                    prevIndex === autocomplete.length - 1 ? -1 : prevIndex + 1
+                )
+                break;
+            case 'Enter':
+                if (selectedIndex !== -1) {
+                    setChosenTracks([...chosenTracks, autocomplete[selectedIndex]['track_id']])
+                    resetSearch();
+                }
+                break;
+            case 'Escape':
+                resetSearch();
+                break;
         }
     };
 
@@ -54,30 +69,50 @@ const SearchBar = ({chosenTracks, setChosenTracks}) => {
         }
     }, [query]);
 
-    const listAutocomplete = autocomplete.length > 0 ? (
-        autocomplete.map(track => (
-                <div className="bg-white max-h-96 overflow-y-scroll resultProductContainer">
+    const ListAutocomplete = () => {
+        const scrollActiveItemIntoView = (index) => {
+            const activeItem = document.getElementById(`item-${index}`)
+
+            if (activeItem) {
+                activeItem.scrollIntoView({
+                    block: "nearest",
+                    inline: "start",
+                    behavior: "smooth"
+                });
+            }
+        };
+
+        useEffect(() => {
+            if (selectedIndex !== -1) {
+                scrollActiveItemIntoView(selectedIndex)
+            }
+        }, [selectedIndex]);
+
+        return (
+            <div className="bg-white max-h-96 overflow-y-scroll resultProductContainer">
+                {autocomplete.map((track, index) => (
                     <div
                         key={track['track_id']}
-                        className="
+                        id={`item-${index}`}
+                        className={`
+                            ${selectedIndex === index ? "bg-gray-500" : ""}
                             py-2 px-4 flex items-center justify-between gap-8
                             hover:bg-gray-200 cursor-pointer
-                        "
+                        `}
                         onClick={() => {
                             setChosenTracks([...chosenTracks, track['track_id']]);
+                            resetSearch();
                         }}
                     >
                         <p>{track['track_artist']}</p>
                     </div>
-                </div>
-            )
-        )
-    ) : (
-        <></>
-    );
+                ))}
+            </div>
+        );
+    };
 
     return (
-        <div className="max-w-lg mx-auto mt-20 flex flex-col">
+        <div className="flex flex-col max-w-lg mx-auto mt-20">
             <input
                 type="text"
                 className="
@@ -90,7 +125,7 @@ const SearchBar = ({chosenTracks, setChosenTracks}) => {
                 ref={inputRef}
                 placeholder="Search tracks..."
             />
-            {listAutocomplete}
+            {query !== "" && autocomplete.length > 0 && (<ListAutocomplete/>)}
         </div>
     );
 }
@@ -169,7 +204,7 @@ export default function App() {
             </div>
             <br></br>
             <div>
-                <Recommendations tracks={chosenTracks} />
+                <Recommendations tracks={chosenTracks}/>
             </div>
         </div>
     );
