@@ -1,6 +1,6 @@
 import './App.css';
 import {SearchBar} from "./components/SearchBar";
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect} from 'react';
 import axios from 'axios'
 
 const apiUrl = '//localhost:5000'
@@ -67,8 +67,13 @@ export default function App() {
     }
 
     return (
-        <div className="bg-slate-800 flex flex-row min-h-screen justify-center items-center">
-            <h1>Music Recommender</h1>
+        <div className="bg-slate-800 flex flex-col min-h-screen justify-center items-center font-SpaceMono">
+            <h1 className="
+                text-white text-center
+                xl:text-5xl lg:text-4xl md:text-3xl
+                sm:text-2xl xs:text-xl font-semibold
+                bg-gray-800 p-2 bg-opacity-40 rounded-sm"
+            >Music Recommender</h1>
             <button onClick={testApi}>Test the API</button>
             <div>
                 <a>{test['api_status']}</a>

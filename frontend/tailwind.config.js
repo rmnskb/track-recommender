@@ -5,7 +5,11 @@ module.exports = {
       "./public/**/*.html",
   ],
   theme: {
-    extend: {},
+    extend: {
+        fontFamily: {
+            SpaceMono: "Space Mono"
+        }
+    },
   },
   plugins: [],
 }

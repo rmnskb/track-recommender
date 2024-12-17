@@ -41,6 +41,8 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
             case 'Escape':
                 resetSearch();
                 break;
+            default:
+                break;
         }
     };
 
@@ -86,24 +88,26 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
         }, [selectedIndex]);
 
         return (
-            <div className="bg-white max-h-96 overflow-y-scroll resultProductContainer">
-                {autocomplete.map((track, index) => (
-                    <div
-                        key={track['track_id']}
-                        id={`item-${index}`}
-                        className={`
-                            ${selectedIndex === index ? "bg-gray-500" : ""}
-                            py-2 px-4 flex items-center justify-between gap-8
-                            hover:bg-gray-200 cursor-pointer
-                        `}
-                        onClick={() => {
-                            setChosenTracks([...chosenTracks, track['track_id']]);
-                            resetSearch();
-                        }}
-                    >
-                        <p>{track['track_artist']}</p>
-                    </div>
-                ))}
+            <div className="absolute top-full left-0 right-0 z-10">
+                <div className="bg-white max-h-96 overflow-y-scroll resultProductContainer">
+                    {autocomplete.map((track, index) => (
+                        <div
+                            key={track['track_id']}
+                            id={`item-${index}`}
+                            className={`
+                                ${selectedIndex === index ? "bg-gray-500" : ""}
+                                py-2 px-4 flex items-center justify-between gap-8
+                                hover:bg-gray-200 cursor-pointer
+                            `}
+                            onClick={() => {
+                                setChosenTracks([...chosenTracks, track['track_id']]);
+                                resetSearch();
+                            }}
+                        >
+                            <p>{track['track_artist']}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
         );
     };
@@ -111,7 +115,7 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
     return (
         <form className="flex items-center max-w-sm mx-auto">
             <label htmlFor="search" className="sr-only">Search</label>
-            <div className="relative w-full">
+            <div className="relative w-full md:w-96">
                 <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                     <svg
                         fill="#6b7280"
