@@ -34,7 +34,7 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
                 break;
             case 'Enter':
                 if (selectedIndex !== -1) {
-                    setChosenTracks([...chosenTracks, autocomplete[selectedIndex]['track_id']])
+                    setChosenTracks([autocomplete[selectedIndex]['track_id']])
                     resetSearch();
                 }
                 break;
@@ -88,8 +88,8 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
         }, [selectedIndex]);
 
         return (
-            <div className="absolute top-full left-0 right-0 z-10">
-                <div className="bg-white max-h-96 overflow-y-scroll resultProductContainer">
+            <div className="absolute top-full left-0 right-0 z-10 pt-1">
+                <div className="bg-gray-100 max-h-96 overflow-y-scroll rounded-lg resultProductContainer">
                     {autocomplete.map((track, index) => (
                         <div
                             key={track['track_id']}
@@ -100,7 +100,7 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
                                 hover:bg-gray-200 cursor-pointer
                             `}
                             onClick={() => {
-                                setChosenTracks([...chosenTracks, track['track_id']]);
+                                setChosenTracks([track['track_id']]);
                                 resetSearch();
                             }}
                         >
@@ -126,8 +126,8 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
                         xmlns="http://www.w3.org/2000/svg"
                         width="800px" height="800px" viewBox="0 0 344.156 344.156"
                     >
-                      <g>
-                        <path d="M343.766,28.723c0-5.525-4.483-10.006-10.006-10.006H106.574c-5.531,0-10.006,4.48-10.006,10.006v194.18
+                        <g>
+                            <path d="M343.766,28.723c0-5.525-4.483-10.006-10.006-10.006H106.574c-5.531,0-10.006,4.48-10.006,10.006v194.18
                           c-10.25-8.871-23.568-14.279-38.156-14.279C26.207,208.623,0,234.824,0,267.029c0,32.209,26.207,58.41,58.412,58.41
                           c32.215,0,58.412-26.201,58.412-58.41c0-2.854-0.246-175.924-0.246-175.924h207.176v131.666
                           c-10.229-8.795-23.487-14.148-38.008-14.148c-32.217,0-58.412,26.201-58.412,58.406c0,32.209,26.195,58.41,58.412,58.41
@@ -136,7 +136,7 @@ export const SearchBar = ({chosenTracks, setChosenTracks}) => {
                           C96.812,288.203,79.586,305.43,58.412,305.43z M116.578,71.094V38.728h207.176v32.365L116.578,71.094L116.578,71.094z
                           M285.746,305.43c-21.174,0-38.4-17.227-38.4-38.4c0-21.17,17.228-38.396,38.4-38.396s38.4,17.228,38.4,38.396
                           C324.146,288.203,306.92,305.43,285.746,305.43z"/>
-                      </g>
+                        </g>
                     </svg>
                 </div>
                 <input

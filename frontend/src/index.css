@@ -8,10 +8,10 @@
     width: 8px;
     height: 20px;
     border-radius: 10px;
-    background: #e0cbcb;
+    background: #a3a3a3;
 }
 
 .resultProductContainer::-webkit-scrollbar-thumb {
-    background: #d2a231;
+    background: #515151;
     border-radius: 10px;
 }
