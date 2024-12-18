@@ -34,5 +34,12 @@ call may look like following:
 curl -X POST http://127.0.0.1:5000/api/v1/recommend \
  -H "Content-Type: application/json" \
  -d '{"ids": ["5SuOikwiRyPMVoIQDJUgSV", "1iJBSr7s7jYXzM8EGcbK5b"], "n_recs": 7}'
+ 
+ # or alternatively, a GET request for the autocomplete endpoint
+ curl -X GET http://127.0.0.1:5000/api/v1/autocomplete?q=Come
 ```
-As you can see, the call has two arguments, the track IDs and number of recommendations per song to return.
+
+As you can see, the first call has two arguments, the track IDs and number of recommendations per song to return.
+
+You can also access the web app using port `:3000` with you browser. The app supports track search within the internal 
+database and displays the recommendations for the chosen track.
