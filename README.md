@@ -41,5 +41,20 @@ curl -X POST http://127.0.0.1:5000/api/v1/recommend \
 
 As you can see, the first call has two arguments, the track IDs and number of recommendations per song to return.
 
-You can also access the web app using port `:3000` with you browser. The app supports track search within the internal 
-database and displays the recommendations for the chosen track.
+## Frontend
+
+![Front Page](frontend.png)
+
+You can also access the web app using port `:3000` with you browser.  
+
+If you have a Spotify API id and secret, you can do following steps to try out the frontend:
+```shell
+cd app 
+echo SPOTIFY_ID=YOUR_SPOTIFY_ID >> .env
+echo SPOTIFY_SECRET=YOUR_SPOTIFY_SECRET >> .env
+```
+
+After setting up these variables, the application will handle overall communication with the Spotify API.
+
+You can type in your search, choose the desired track from the suggested autocompletes and receive the recommendations.
+All cards are clickable as they lead to Spotify tracks.
