@@ -105,10 +105,13 @@ class SpotifyAPIHandler(APIHandler):
             track_data = [extract_track_data(entry) for entry in response['tracks']]
             tracks = pd.DataFrame(track_data)
 
-        else:  # len(ids) == 1
+        elif len(ids) == 1:
             response = self.get_track(track_id=ids[0])
             track_data = extract_track_data(response)
             tracks = pd.DataFrame([track_data])
+
+        else:
+            tracks = pd.DataFrame({})
 
         return tracks
 
@@ -119,4 +122,4 @@ if __name__ == '__main__':
     # print(api.get_track(track_id='5SuOikwiRyPMVoIQDJUgSV'))
     # print(api.get_tracks(track_ids=['7ouMYWpwJ422jRcDASZB7P', '4VqPOruhp5EdPBeR92t6lQ', '2takcwOaAZWiXQijPHIx7B']))
     # print(api.process_tracks(ids=['5SuOikwiRyPMVoIQDJUgSV']))
-    print(api.process_tracks(ids=['7ouMYWpwJ422jRcDASZB7P', '4VqPOruhp5EdPBeR92t6lQ', '2takcwOaAZWiXQijPHIx7B']))
+    # print(api.process_tracks(ids=['7ouMYWpwJ422jRcDASZB7P', '4VqPOruhp5EdPBeR92t6lQ', '2takcwOaAZWiXQijPHIx7B']))

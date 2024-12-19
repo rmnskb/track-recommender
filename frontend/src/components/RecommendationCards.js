@@ -35,21 +35,30 @@ export const RecommendationCards = (tracks) => {
 
         return (
             recs.map((rec) => (
-                <div key={rec['track_id']} className="flex gap-8 flex-wrap justify-center">
+                <div
+                    key={rec['track_id']}
+                    className="
+                        flex gap-8 flex-wrap justify-center max-w-2xl mx-4
+                        sm:max-w-sm md:max-w-sm lg:max-w-sm xl:max-w-sm sm:mx-auto
+                        md:mx-auto lg:mx-auto xl:mx-auto mt-8 shadow-xl rounded-lg
+                    "
+                >
                     <div
                         className="
                             transform max-w-sm bg-white border border-gray-200 rounded-xl shadow-xl
                             dark:bg-gray-800 dark:border-gray-700 transition duration-300 hover:scale-105
-                            overflow-hidden w-100 h-120 flex flex-col
+                            overflow-hidden
                         "
                     >
-                        <div className="flex flex-col h-full justify-center items-center object-cover">
+                        <div className="justify-center items-center object-cover rounded-t-lg h-96 w-96 overflow-hidden">
                             <img
-                                className="rounded-lg"
-                                src="https://i.scdn.co/image/ab67616d00001e02ff9ca10b55ce82ae553c8228"
+                                className="rounded-lg object-cover object-top w-full"
+                                src={rec['image_url']}
                                 alt={rec['track_artist']}
                             ></img>
-                            <div className="p-5">
+                        </div>
+                        <div className="p-5 text-center mt-2 object-cover">
+                            <a href={rec['uri']}>
                                 <h5
                                     className="
                                         mb-2 text-2xl font-bold tracking-tight
@@ -59,7 +68,7 @@ export const RecommendationCards = (tracks) => {
                                 <p
                                     className="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-2"
                                 >{rec['artists']}</p>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>
