@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+import psutil
 from pandas import merge
 from recommender import Recommender
 from db.db_handler import DB
@@ -74,9 +75,24 @@ def autocomplete():
     return suggestions, 200
 
 
-@app.route('/api/v1/test', methods=['GET'])
-def test_api():
-    return {'api_status': 'works fine'}, 200
+@app.route('/api/v1/health', methods=['GET'])
+def health_check():
+    try:
+        status = {
+            'status': 'healthy'
+            , 'cpu_usage': psutil.cpu_percent()
+            , 'memory_usage': psutil.virtual_memory().percent
+            , 'disk_usage': psutil.disk_usage('/').percent
+        }
+    except Exception as e:
+        status = {
+            'status': 'unhealthy'
+            , 'error': str(e)
+        }
+
+    status_code = 200 if status['status'] == 'healthy' else 500
+
+    return jsonify(status), status_code
 
 
 if __name__ == '__main__':
