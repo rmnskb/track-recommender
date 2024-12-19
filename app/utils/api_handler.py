@@ -1,4 +1,5 @@
 import requests
+import time
 from functools import wraps
 
 
@@ -8,7 +9,7 @@ def wait_on_429(func):
         result = func(self, *args, **kwargs)
 
         if isinstance(result, tuple) and len(result) >= 2 and result[1] == 429:
-            asyncio.sleep(10)
+            time.sleep(10)
             result = func(self, *args, **kwargs)
 
         return result
