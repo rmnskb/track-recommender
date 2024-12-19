@@ -12,7 +12,7 @@ export default function App() {
                 text-white text-center
                 xl:text-5xl lg:text-4xl md:text-3xl
                 sm:text-2xl xs:text-xl font-semibold
-                bg-gray-800 p-2 bg-opacity-40 rounded-sm"
+                bg-gray-800 p-2 bg-opacity-40 rounded-sm mt-11"
             >Music Recommender</h1>
             <br></br>
             <div>

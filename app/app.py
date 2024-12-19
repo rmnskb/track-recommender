@@ -1,12 +1,15 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from pandas import merge
 from recommender import Recommender
 from db.db_handler import DB
+from utils.spotify_api import SpotifyAPIHandler
 
 app = Flask(__name__)
 CORS(app)
 db = DB()
 recommender = Recommender(reuse_model=True)
+spotify_api = SpotifyAPIHandler()
 
 
 @app.route('/api/v1/recommend', methods=['POST'])
@@ -37,8 +40,15 @@ def recommend():
         , group_by=['tr.track_id', 'tr.track_name']
     )
 
+    track_ids = results['track_id'].tolist()
+    links = spotify_api.process_tracks(ids=track_ids)
+
     results['track_artist'] = results['track_name'] + ' by ' + results['artists']
+    results = results.drop_duplicates(subset='track_id')
+    results = merge(results, links, on='track_id', how='inner')
+
     results = results.to_dict(orient='records')
+    # links = links.to_dict(orient='records')
 
     return jsonify(results), 200
 
