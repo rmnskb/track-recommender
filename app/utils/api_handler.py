@@ -46,16 +46,11 @@ class APIHandler:
     @staticmethod
     def get(url, **kwargs) -> tuple[dict, int]:
         try:
-            async with requests.Session() as session:
+            with requests.Session() as session:
                 request = requests.Request('GET', url=url, **kwargs)
                 prepped = session.prepare_request(request)
 
-                if prepped.headers:
-                    # prepped.headers = prepped.headers
-                    print(prepped.headers)
-
                 response = session.send(prepped)
-
             try:
                 return response.json(), response.status_code
             except requests.exceptions.JSONDecodeError as err:
@@ -68,5 +63,6 @@ class APIHandler:
 
 if __name__ == '__main__':
     api = APIHandler()
-    api.get(url='http://127.0.0.1:5000/api/v1/autocomplete?q=Come', headers={'Authorization': 'Bearer  123'})
+
+    # api.get(url='http://127.0.0.1:5000/api/v1/autocomplete?q=Come', headers={'Authorization': 'Bearer  123'})
 
