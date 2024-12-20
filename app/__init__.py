@@ -1,6 +1,5 @@
 # backend
 # TODO: Cover the api and db parts with tests
-# TODO: Create health checks for the API
 
 # frontend
 # TODO: Cover the frontend with tests
